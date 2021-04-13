@@ -6,10 +6,6 @@ const functions = require('firebase-functions');
 const getUrls = require('get-urls');
 const cors = require('cors')({ origin: true});
 
-const cors = require('cors')({ origin: true});
-const cors = require('cors')({ origin: true});
-const cors = require('cors')({ origin: true});
-
 const scrapeMetatags = (text) => {
     const urls = Array.from( getUrls(text) );
 
