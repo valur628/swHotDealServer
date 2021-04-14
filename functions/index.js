@@ -1,10 +1,10 @@
 const fs = require('fs');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const fetch = require('node-fetch');
-const functions = require('firebase-functions');
-const getUrls = require('get-urls');
-const cors = require('cors')({ origin: true});
+//const fetch = require('node-fetch');
+//const functions = require('firebase-functions');
+//const getUrls = require('get-urls');
+//const cors = require('cors')({ origin: true});
 
 var resultList = [];
 var cnt = 0;
@@ -27,25 +27,29 @@ function getHTML(url) {
     })    
 }
 function main() {
+    console.log('1');
     fs.readFile('search_list.txt','utf8',function(err, data){
         var allText = data;
         var list = allText.split('\n');
         var result = [];
-        for(var i=1; i<list.length-1;i++){
+        console.log('2');
+        for(var i=0; i<list.length-1;i++){
             result.push(list[i]);
         }
+        console.log('3');
         for(var j=0;j<result.length;j++){
+            console.log('4');
             getHTML(result[j]).then(html => {
                 let result = {};
                 const $ = cheerio.load(html.data);
-                result['title'] = $("body").find(".search_tit").text();
+                result['SW_Name'] = $("body").find(".mature_content_filtered").text();
+                /*result['title'] = $("body").find(".search_tit").text();
                 result['date'] = $("body").find(".tit_loc").text();
-                result['content_trans'] = $("body").find(".ins_view_pd").find(".paragraph").eq(0).text();
-                result['content_origin'] = $("body").find(".ins_view_pd").find(".paragraph").eq(1).text();
+                result['content_origin'] = $("body").find(".ins_view_pd").find(".paragraph").eq(1).text();*/
                 return result;
             })
-            // 추가 작성
             .then(res => {
+                console.log('5');
                 cnt++;
                 resultList.push(res);
                 if(result.length == cnt){
@@ -55,10 +59,11 @@ function main() {
                 } 
             });
         }
-    });
+        console.log('6');
+    })
 }
 
-main();
+main()
 
 /*
 
