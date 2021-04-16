@@ -8,7 +8,7 @@
 - 해당 서버는 자바스크립트와 구글 파이어베이스를 이용함
 - DB 관련 정보
 
-|    | Hangle Name   | in DB Name     | Type          | Key |
+|    | Hangul Name   | in DB Name     | Type          | Key |
 |----|---------------|----------------|---------------|-----|
 | 1  | 갱신순서      | DB_LoadNumber  | integer       | P.K |
 | 2  | 소프트웨어 명 | DB_SWName      | Text string   |     |
