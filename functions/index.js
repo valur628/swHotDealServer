@@ -89,7 +89,7 @@ async function humblebundleMain() {
 	/*fs.appendFile('result.json', '{"HB_ObjName":"HumbleBundle","HB_Software": [', 'utf8', function(error) {
 	    console.log(error);
 	});*/
-	fileOutput = JSON.stringify('{"HB_ObjName":"HumbleBundle","HB_Software": [');
+	fileOutput += '{"HB_ObjName":"HumbleBundle","HB_Software": [';
 	splitValue = await humblebundleWeb();
 	console.log("다다음 " + splitValue);
 	for(let i = 1; i < splitValue.length - 1; i++) {
