@@ -72,7 +72,7 @@ function humblebundleDB(splitValue, lines, pageNum) {
 
 	FB_object.DB_DevName = "Not Dev";
 	FB_object.DB_DisPeriod = 20000101;
-	FB_object.DB_Currecny = (splitValue[lines].split(HB_Split[3][0])[1].toString()).split(HB_Split[3][1])[0].toString();
+	FB_object.DB_Currency = (splitValue[lines].split(HB_Split[3][0])[1].toString()).split(HB_Split[3][1])[0].toString();
 	FB_object.DB_Cost = (splitValue[lines].split(HB_Split[4][0])[1].toString()).split(HB_Split[4][1])[0].toString();
 	FB_object.DB_DisPrice = (splitValue[lines].split(HB_Split[5][0])[1].toString()).split(HB_Split[5][1])[0].toString();
 	FB_object.DB_DisRate =  100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10);
