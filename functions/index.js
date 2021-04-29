@@ -44,8 +44,11 @@ let S_Split = [
 
 let html;
 let fileOutput;
+
 let HB_lineTotal;
 let S_lineTotal;
+let HB_sublineTotal = 0;
+let S_sublineTotal = 0;
 const humblebundleRepeat = 20;
 const steamRepeat = 50; //25가 기본 단위
 
@@ -70,7 +73,7 @@ async function humblebundleWeb(pageCount) {
 	});
 
 	html = await HB_page.content();
-	await HB_page.waitForTimeout(500 + (Math.floor(Math.random() * 1000)));
+	await HB_page.waitForTimeout(500 + (Math.floor(Math.random() * 1500)));
 	splitValue = html.split('standard_carousel_image":"');
 	await HB_page.close();
 	await HB_browser.close();
@@ -84,15 +87,22 @@ function humblebundleDB(splitValue, lines, pageNum) {
 		DB_DevName: "Not Dev Name",
 		DB_DisPeriod: "0",
 		DB_Currency: "USD",
-		DB_Cost: 0.0,
-		DB_DisPrice: 0.0,
-		DB_DisRate: 0.0,
+		DB_Cost: 0,
+		DB_DisPrice: -1,
+		DB_DisRate: 0,
 		DB_PlatAddress: "Not Address",
 		DB_PlatName: "Not Site",
 		DB_RepPicture: "Not Main Picture",
 		DB_OthPicture: "Not Sub Picture"
 	}
-	FB_object.DB_LoadNumber = HB_lineTotal;
+	FB_object.DB_Cost = parseInt(100 * parseFloat(jsonSplit(splitValue, lines, 4, HB_Split)));
+	FB_object.DB_DisPrice = parseInt(100 * parseFloat(jsonSplit(splitValue, lines, 5, HB_Split)));
+	if((FB_object.DB_DisPrice == FB_object.DB_Cost) && (FB_object.DB_Cost != 0)){
+		FB_object.DB_DisPrice = -1;
+		HB_sublineTotal++;
+		return "0";
+	}
+	FB_object.DB_LoadNumber = HB_lineTotal - HB_sublineTotal;
 	nameTemp = jsonSplit(splitValue, lines, 0, HB_Split);
 	nameTemp = nameTemp.replace(/&amp;/g, "&").replace(/&2122/g, "");
 	nameTemp = nameTemp.replace(/^[\s\u00a0\u3000]+|[\s\u00a0\u3000]+$/g, "").replace(/\\u00a0/g, " ");
@@ -100,19 +110,18 @@ function humblebundleDB(splitValue, lines, pageNum) {
 	FB_object.DB_DevName = "Not Dev";
 	FB_object.DB_DisPeriod = 20000101;
 	FB_object.DB_Currency = jsonSplit(splitValue, lines, 3, HB_Split);
-	FB_object.DB_Cost = parseFloat(jsonSplit(splitValue, lines, 4, HB_Split));
-	FB_object.DB_DisPrice = parseFloat(jsonSplit(splitValue, lines, 5, HB_Split));
-	FB_object.DB_DisRate = parseFloat(100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10));
+	FB_object.DB_DisRate = parseInt(100 * parseFloat(100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10)));
 	FB_object.DB_PlatAddress = "https://www.humblebundle.com/store/" + jsonSplit(splitValue, lines, 7, HB_Split);
 	FB_object.DB_PlatName = "HumbleBundle";
 	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 9, HB_Split);
 	FB_object.DB_RepPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
 	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 10, HB_Split);
 	FB_object.DB_OthPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
-	return JSON.stringify(FB_object, null, 5) + (HB_lineTotal == (pageNum * humblebundleRepeat) - 1 ? "]}" : ",");
+	return JSON.stringify(FB_object, null, 5);
 }
 async function humblebundleMain() {
 	let splitValue = [];
+	let dbTemp = '';
 	let fileOutput = '';
 	let pageNum = 5;
 	fs.writeFile('HB_result.json', '{"DB_Category":"HumbleBundle","DB_Software": [', 'utf8', function(error) {
@@ -122,12 +131,15 @@ async function humblebundleMain() {
 		splitValue = await humblebundleWeb(i);
 		for(let j = 1; j < splitValue.length; j++) {
 			HB_lineTotal = (j + (i * humblebundleRepeat) - 1);
-			fileOutput += humblebundleDB(splitValue, j, pageNum);
+			dbTemp = humblebundleDB(splitValue, j, pageNum);
+			(HB_lineTotal != (pageNum * humblebundleRepeat) - 1) && (dbTemp != "0") ? fileOutput += (dbTemp + ",") : fileOutput += "";
 		}
 	}
-	fs.appendFile('HB_result.json', fileOutput, 'utf8', function(error) {
+	if(fileOutput.slice(-1) == ",") { fileOutput = fileOutput.slice(0, -1); }
+	fs.appendFile('HB_result.json', fileOutput + ']}', 'utf8', function(error) {
 		console.log(error);
 	});
+	console.log("HumbleBundle-END");
 }
 
 
@@ -142,16 +154,13 @@ async function steamWeb(pageCount) {
 		waitUntil: 'networkidle0'
 	});
 	html = await S_page.content();
-	await S_page.waitForTimeout(500 + (Math.floor(Math.random() * 1000)));
+	await S_page.waitForTimeout(500 + (Math.floor(Math.random() * 1500)));
 
 	html = html.replace(/(?:\\[rnt]|[\r\n\t])/g, "").replace(/\s\s+/g, ' ');
 	html = html.replace(/&lt;\\/g, "<").replace(/&lt;/g, "<").replace(/&gt;\\/g, ">").replace(/&gt;/g, ">");
 	html = html.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 	html = html.replace(/\\\//g, "/").replace(/\\\"/g, '"').replace(/ ₩/g, "₩");
 	splitValue = html.split('<a href="');
-	fs.writeFile('result_steam_txt.txt', html, 'utf8', function(error) {
-		console.log(error);
-	});
 	await S_page.close();
 	await S_browser.close();
 	return splitValue;
@@ -164,15 +173,30 @@ function steamDB(splitValue, lines, pageNum) {
 		DB_DevName: "Not Dev Name",
 		DB_DisPeriod: "0",
 		DB_Currency: "KRW",
-		DB_Cost: 0.0,
-		DB_DisPrice: 0.0,
-		DB_DisRate: 0.0,
+		DB_Cost: 0,
+		DB_DisPrice: -1,
+		DB_DisRate: 0,
 		DB_PlatAddress: "Not Address",
 		DB_PlatName: "Not Site",
 		DB_RepPicture: "Not Main Picture",
 		DB_OthPicture: "Not Sub Picture"
 	}
-	FB_object.DB_LoadNumber = S_lineTotal;
+	try {
+		priceTemp = jsonSplit(splitValue, lines, 4, S_Split);;
+		FB_object.DB_Cost = parseInt(100 * parseFloat(priceTemp.replace(/₩/g, "").replace(/ /g, "").replace(/,/g, "")));
+	}
+	catch(error) { }
+	
+	try {
+		priceTemp = jsonSplit(splitValue, lines, 5, S_Split);;
+		FB_object.DB_DisPrice = parseInt(100 * parseFloat(priceTemp.replace(/₩/g, "").replace(/ /g, "").replace(/,/g, "")));
+	}
+	catch(error) {
+		S_sublineTotal++;
+		return "0";
+	}
+
+	FB_object.DB_LoadNumber = S_lineTotal - S_sublineTotal;
 	nameTemp = jsonSplit(splitValue, lines, 0, S_Split);
 	nameTemp = nameTemp.replace(/&amp;/g, "&").replace(/&2122/g, "");
 	nameTemp = nameTemp.replace(/^[\s\u00a0\u3000]+|[\s\u00a0\u3000]+$/g, "");
@@ -180,18 +204,9 @@ function steamDB(splitValue, lines, pageNum) {
 	FB_object.DB_DevName = "Not Dev";
 	FB_object.DB_DisPeriod = 20000101;
 	FB_object.DB_Currency = "KRW";
-	try {
-		priceTemp = jsonSplit(splitValue, lines, 4, S_Split);;
-		FB_object.DB_Cost = parseFloat(priceTemp.replace(/₩/g, "").replace(/ /g, "").replace(/,/g, ""));
-	}
-	catch(error) { }
-	try {
-		priceTemp = jsonSplit(splitValue, lines, 5, S_Split);;
-		FB_object.DB_DisPrice = parseFloat(priceTemp.replace(/₩/g, "").replace(/ /g, "").replace(/,/g, ""));
-	}
-	catch(error) { }
-	FB_object.DB_DisRate = parseFloat(100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10));
 	
+	FB_object.DB_DisRate = !FB_object.DB_Cost && !FB_object.DB_DisPrice ? 0 : parseInt(100 * parseFloat(100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10)));
+	//!FB_object.DB_DisRate || (!FB_object.DB_Cost == ) 할인율 관련해서 뜯어고치고, 할인율이 있는 상품만 저장하는 방식으로 변경, 당연하지만 할인율이 맨 위에 가서 최적화할 수 있게 설계
 	FB_object.DB_PlatAddress = "https://store.steampowered.com/" + jsonSplit(splitValue, lines, 7, S_Split);
 	FB_object.DB_PlatName = "Steam";
 	appidTemp = jsonSplit(splitValue, lines, 9, S_Split);
@@ -199,12 +214,13 @@ function steamDB(splitValue, lines, pageNum) {
 	FB_object.DB_RepPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
 	pictureTemp = 'https://cdn.cloudflare.steamstatic.com/steam/' + appidTemp + '/header.jpg';
 	FB_object.DB_OthPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
-	return JSON.stringify(FB_object, null, 5) + (S_lineTotal == (pageNum * steamRepeat) - 1 ? "]}" : ",");
+	return JSON.stringify(FB_object, null, 5);
 }
 async function steamMain() {
 	let splitValue = [];
+	let dbTemp = '';
 	let fileOutput = '';
-	let pageNum = parseInt(400 / steamRepeat);
+	let pageNum = parseInt(500 / steamRepeat);
 	fs.writeFile('S_result.json', '{"DB_Category":"Steam","DB_Software": [', 'utf8', function(error) {
 		console.log(error);
 	});
@@ -212,12 +228,15 @@ async function steamMain() {
 		splitValue = await steamWeb(i);
 		for(let j = 1; j < steamRepeat + 1; j++) {
 			S_lineTotal = (j + (i * steamRepeat) - 1);
-			fileOutput += steamDB(splitValue, j, pageNum);
+			dbTemp = steamDB(splitValue, j, pageNum);
+			(S_lineTotal != (pageNum * steamRepeat) - 1) && (dbTemp != "0") ? fileOutput += (dbTemp + ",") : fileOutput += "";
 		}
 	}
-	fs.appendFile('S_result.json', fileOutput, 'utf8', function(error) {
+	if(fileOutput.slice(-1) == ",") { fileOutput = fileOutput.slice(0, -1); }
+	fs.appendFile('S_result.json', fileOutput + ']}', 'utf8', function(error) {
 		console.log(error);
 	});
+	console.log("STEAM-END");
 }
 
 async function WebScraper()
