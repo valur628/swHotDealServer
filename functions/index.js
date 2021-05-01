@@ -7,6 +7,12 @@ const cheerio = require('cheerio');
 //const cors = require('cors')({ origin: true});*/
 
 //https://store.steampowered.com/search/results/?query&start=000&count=1700&dynamic_data=&force_infinite=1&category1=994%2C996&snr=1_7_7_230_7&infinite=1
+//var database = firebase.database();
+const firebase = require("firebase");
+require("firebase/firestore");
+const firestoreService = require ( 'firestore-export-import'); 
+const firebaseConfig = require ('./config.js'); 
+const serviceAccount = require ('./serviceAccount.json'); 
 
 const fs = require('fs');
 const morgan = require('morgan');
@@ -124,7 +130,7 @@ async function humblebundleMain() {
 	let dbTemp = '';
 	let fileOutput = '';
 	let pageNum = 5;
-	fs.writeFile('HB_result.json', '{"DB_Category":"HumbleBundle","DB_Software": [', 'utf8', function(error) {
+	fs.writeFile('HB_result.json', '{"humblebundleDB": [', 'utf8', function(error) {
 		console.log(error);
 	});
 	for(let i = 0; i < pageNum; i++) {
@@ -221,7 +227,7 @@ async function steamMain() {
 	let dbTemp = '';
 	let fileOutput = '';
 	let pageNum = parseInt(500 / steamRepeat);
-	fs.writeFile('S_result.json', '{"DB_Category":"Steam","DB_Software": [', 'utf8', function(error) {
+	fs.writeFile('S_result.json', '{"steamDB": [', 'utf8', function(error) {
 		console.log(error);
 	});
 	for(let i = 0; i < pageNum; i++) {
@@ -239,14 +245,30 @@ async function steamMain() {
 	console.log("STEAM-END");
 }
 
+const jsonToFirestore = async (jsonName) => {
+	try {
+	  console.log('Initialzing Firebase');
+	  await firestoreService.initializeApp(serviceAccount, firebaseConfig.databaseURL);
+	  console.log('Firebase Initialized');
+  
+	  await firestoreService.restore('./' + jsonName);
+	  console.log('Upload Success');
+	}
+	catch (error) {
+	  console.log(error);
+	}
+  };
+  
+
 async function WebScraper()
 {
 	await humblebundleMain();
 	await steamMain();
+	await jsonToFirestore("HB_result.json");
+	await jsonToFirestore("S_result.json");
+	console.log("END");
 }
-
 WebScraper();
-
 
 /*const scrapeMetatags = (text) => {
 	    const urls = Array.from( getUrls(text) );
@@ -293,3 +315,103 @@ WebScraper();
 	      response.send(data);
 	      });
 	  });*/
+/*
+function webSend(){
+	firebase.initializeApp({
+		apiKey: "AIzaSyA8BmTLD9zOdLXlK3i39I7odZIvAboomHE",
+		authDomain: "swhotdealtest.firebaseapp.com",
+		projectId: "swhotdealtest",
+		storageBucket: "swhotdealtest.appspot.com",
+		messagingSenderId: "998725582733",
+		appId: "1:998725582733:web:d9326e7cedd09649f947c4",
+		measurementId: "G-1ZKX1DXN3Q"
+});
+
+var db = firebase.firestore();
+HB_Result
+var humblebundleData = [{
+	"DB_LoadNumber": 0,
+	"DB_SWName": "DisplayFusion",
+	"DB_DevName": "Not Dev",
+	"DB_DisPeriod": 20000101,
+	"DB_Currency": "USD",
+	"DB_Cost": 3499,
+	"DB_DisPrice": 1748,
+	"DB_DisRate": 5000,
+	"DB_PlatAddress": "https://www.humblebundle.com/store/displayfusion",
+	"DB_PlatName": "HumbleBundle",
+	"DB_RepPicture": "https://hb.imgix.net/f4905ead68a0e8281d400ff203b1620a34791f90.jpg?auto=compress,format&fit=crop&h=154&w=270&s=5c5ad4f08ce0f6d29a6efb7bb080048f",
+	"DB_OthPicture": "https://hb.imgix.net/f4905ead68a0e8281d400ff203b1620a34791f90.jpg?auto=compress,format&fit=crop&h=353&w=616&s=919dd2ceae3ca020df15b0db9eca0f37"
+},{
+	"DB_LoadNumber": 1,
+	"DB_SWName": "Black Ink",
+	"DB_DevName": "Not Dev",
+	"DB_DisPeriod": 20000101,
+	"DB_Currency": "USD",
+	"DB_Cost": 5999,
+	"DB_DisPrice": 3599,
+	"DB_DisRate": 4000,
+	"DB_PlatAddress": "https://www.humblebundle.com/store/black-ink",
+	"DB_PlatName": "HumbleBundle",
+	"DB_RepPicture": "https://hb.imgix.net/0f5f1c8dfe9c94db17036db8ba6bc7534f3b1705.jpg?auto=compress,format&fit=crop&h=154&w=270&s=b66b7f3cc78323a1b04144b4c09fbe97",
+	"DB_OthPicture": "https://hb.imgix.net/0f5f1c8dfe9c94db17036db8ba6bc7534f3b1705.jpg?auto=compress,format&fit=crop&h=353&w=616&s=cc30f9e90c10e0421efa5b4d001434b3"
+},{
+	"DB_LoadNumber": 2,
+	"DB_SWName": "Movavi Video Suite 2020 Steam Edition - - Video Making Software - Edit, Convert, Capture Screen, and more",
+	"DB_DevName": "Not Dev",
+	"DB_DisPeriod": 20000101,
+	"DB_Currency": "USD",
+	"DB_Cost": 7998,
+	"DB_DisPrice": 2799,
+	"DB_DisRate": 6500,
+	"DB_PlatAddress": "https://www.humblebundle.com/store/movavi-video-suite-2020",
+	"DB_PlatName": "HumbleBundle",
+	"DB_RepPicture": "https://hb.imgix.net/6762f9ce598b043321e10ed4e409cf67f7835d43.jpeg?auto=compress,format&fit=crop&h=154&w=270&s=24e2ebaf30d7b7adde6d7c9e07a8776f",
+	"DB_OthPicture": "https://hb.imgix.net/6762f9ce598b043321e10ed4e409cf67f7835d43.jpeg?auto=compress,format&fit=crop&h=353&w=616&s=c7fee6073cf7357a3419ace8c859a44f"
+},{
+	"DB_LoadNumber": 3,
+	"DB_SWName": "3DMark, PCMark 10 & VRMark Bundle",
+	"DB_DevName": "Not Dev",
+	"DB_DisPeriod": 20000101,
+	"DB_Currency": "USD",
+	"DB_Cost": 5999,
+	"DB_DisPrice": 899,
+	"DB_DisRate": 8500,
+	"DB_PlatAddress": "https://www.humblebundle.com/store/3dmark-pcmark10-and-vrmark-bundle",
+	"DB_PlatName": "HumbleBundle",
+	"DB_RepPicture": "https://hb.imgix.net/ecb9eb5ff6cd7e38d7f8d9976d81176db71b799d.jpg?auto=compress,format&fit=crop&h=154&w=270&s=26333227287250fd3cf6d649741497b6",
+	"DB_OthPicture": "https://hb.imgix.net/ecb9eb5ff6cd7e38d7f8d9976d81176db71b799d.jpg?auto=compress,format&fit=crop&h=353&w=616&s=ca0c50fa90f319db774167daac90ef2e"
+}];
+let steamData;
+
+//humblebundleData = [fs.readFileSync('HB_result.json', 'utf8')];
+
+fs.readFile('S_result.json', 'utf8', function(err, data){
+	console.log(err);
+	steamData = data;
+});
+
+
+humblebundleData.forEach(function(obj){
+	db.collection("humblebundleData").add({
+			DB_LoadNumber : obj.DB_LoadNumber,
+			DB_SWName : obj.DB_SWName,
+			DB_DevName :obj.DB_DevName,
+			DB_DisPeriod :obj.DB_DisPeriod,
+			DB_Currency :obj.DB_Currency,
+			DB_Cost :obj.DB_Cost,
+			DB_DisPrice : obj.DB_DisPrice,
+			DB_DisRate : obj.DB_DisRate,
+			DB_PlatAddress : obj.DB_PlatAddress,
+			DB_PlatName : obj.DB_PlatName,
+			DB_RepPicture : obj.DB_RepPicture,
+			DB_OthPicture : obj.DB_OthPicture
+	}).then(function(docRef) {
+		console.log("Document written with ID: ", docRef.id);
+	})
+	.catch(function(error) {
+		console.error("Error adding document: ", error);
+	});
+})
+}
+*/
