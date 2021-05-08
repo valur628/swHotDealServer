@@ -1,10 +1,10 @@
 const firebaseConfig = {
-		apiKey: "AIzaSyA8BmTLD9zOdLXlK3i39I7odZIvAboomHE",
-		authDomain: "swhotdealtest.firebaseapp.com",
-		projectId: "swhotdealtest",
-		storageBucket: "swhotdealtest.appspot.com",
-		messagingSenderId: "998725582733",
-		appId: "1:998725582733:web:d9326e7cedd09649f947c4",
-		measurementId: "G-1ZKX1DXN3Q"
-}
+    apiKey: "AIzaSyAT5sg1cK6laO8e-WVcZesI61kMQBeKIs4",
+    authDomain: "swhotdealfb.firebaseapp.com",
+    projectId: "swhotdealfb",
+    storageBucket: "swhotdealfb.appspot.com",
+    messagingSenderId: "727470924385",
+    appId: "1:727470924385:web:a611ff4f445bc9d09e0020",
+    measurementId: "G-N0K7M10H2Q"
+  }
 module.exports = firebaseConfig;
