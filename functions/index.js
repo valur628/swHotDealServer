@@ -95,7 +95,7 @@ function humblebundleDB(splitValue, lines) {
 		HB_sublineTotal++;
 		return "0";
 	}
-	FB_object.DB_LoadNumber = HB_lineTotal - HB_sublineTotal;
+	FB_object.DB_LoadNumber = HB_lineTotal - HB_sublineTotal + (S_lineTotal - S_sublineTotal);
 	nameTemp = jsonSplit(splitValue, lines, 0, HB_Split);
 	nameTemp = nameTemp.replace(/&amp;/g, "&").replace(/&2122/g, "");
 	nameTemp = nameTemp.replace(/^[\s\u00a0\u3000]+|[\s\u00a0\u3000]+$/g, "").replace(/\\u00a0/g, " ");
@@ -106,13 +106,13 @@ function humblebundleDB(splitValue, lines) {
 	FB_object.DB_DisRate = parseInt(100 * parseFloat(100 - (Math.round(((parseInt(FB_object.DB_DisPrice) / parseInt(FB_object.DB_Cost)) * 100) * 10) / 10)));
 	FB_object.DB_PlatAddress = "https://www.humblebundle.com/store/" + jsonSplit(splitValue, lines, 7, HB_Split);
 	FB_object.DB_PlatName = "HumbleBundle";
-	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 9, HB_Split);
+	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 9, HB_Split) + '.jpg';
 	FB_object.DB_RepPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
-	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 10, HB_Split);
+	pictureTemp = 'https://hb.imgix.net/' + jsonSplit(splitValue, lines, 10, HB_Split) + '.jpg';
 	FB_object.DB_OthPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
 	return JSON.stringify(FB_object, null, 5);
 }
-
+/*
 async function humblebundleMain() {
 	let splitValue = [];
 	let dbTemp = '';
@@ -136,7 +136,7 @@ async function humblebundleMain() {
 		console.log("파일 쓰기-HumbleBundle: " + error);
 	});
 	console.log("HumbleBundle 크롤링 끝");
-}
+}*/
 
 async function steamWeb(pageCount) {
 	let splitValue = ["abcdefgh"];
@@ -205,26 +205,39 @@ function steamDB(splitValue, lines) {
 	return JSON.stringify(FB_object, null, 5);
 }
 
-async function steamMain() {
-	let splitValue = [];
-	let dbTemp = '';
+async function scrapingMain() {
 	let fileOutput = '';
-	let pageNum = parseInt(1000 / steamRepeat);
-	fs.writeFile('S_result.json', '{"steamDB": [', 'utf8', function(error) {
-		console.log("파일 만들기-Steam: " + error);
+	let S_splitValue = [];
+	let S_dbTemp = '';
+	let S_pageNum = parseInt(1000 / steamRepeat);
+	fs.writeFile('DBresult.json', '{"ScrapingDB": [', 'utf8', function(error) {
+		console.log("파일 만들기: " + error);
 	});
-	for(let i = 0; i < pageNum; i++) {
-		splitValue = await steamWeb(i);
+	for(let i = 0; i < S_pageNum; i++) {
+		S_splitValue = await steamWeb(i);
 		for(let j = 1; j < steamRepeat + 1; j++) {
 			S_lineTotal = (j + (i * steamRepeat) - 1);
-			dbTemp = steamDB(splitValue, j, pageNum);
-			(S_lineTotal != (pageNum * steamRepeat) - 1) && (dbTemp != "0") ? fileOutput += (dbTemp + ","): fileOutput += "";
+			S_dbTemp = steamDB(S_splitValue, j, S_pageNum);
+			(S_lineTotal != (S_pageNum * steamRepeat) - 1) && (S_dbTemp != "0") ? fileOutput += (S_dbTemp + ","): fileOutput += "";
+		}
+	}
+
+	let HB_splitValue = [];
+	let HB_dbTemp = '';
+	let HB_pageNum = 5;
+	for(let i = 0; i < HB_pageNum; i++) {
+		HB_splitValue = await humblebundleWeb(i);
+		for(let j = 1; j < HB_splitValue.length; j++) {
+			HB_lineTotal = (j + (i * humblebundleRepeat) - 1);
+			HB_dbTemp = humblebundleDB(HB_splitValue, j, HB_pageNum);
+			(HB_lineTotal != (HB_pageNum * humblebundleRepeat) - 1) && (HB_dbTemp != "0") ? fileOutput += (HB_dbTemp + ","): fileOutput += "";
 		}
 	}
 	if(fileOutput.slice(-1) == ",") {
 		fileOutput = fileOutput.slice(0, -1);
 	}
-	fs.appendFile('S_result.json', fileOutput + ']}', 'utf8', function(error) {
+
+	fs.appendFile('DBresult.json', fileOutput + ']}', 'utf8', function(error) {
 		console.log("파일 쓰기-Steam: " + error);
 	});
 	console.log("STEAM 크롤링 끝");
@@ -243,10 +256,8 @@ const jsonToFirestore = async(jsonName) => {
 };
 
 async function WebScraper() {
-	await humblebundleMain();
-	await steamMain();
-	await jsonToFirestore("HB_result.json");
-	await jsonToFirestore("S_result.json");
+	await scrapingMain();
+	await jsonToFirestore("DBresult.json");
 	console.log("완료");
 }
 
