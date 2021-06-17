@@ -49,6 +49,7 @@ const hostPort = 8080;
 app.use(morgan('combined'));
 app.listen(hostPort, () => {
 	console.log('호스트 포트: ' + hostPort);
+	console.log('웹 연결...');
 });
 
 function jsonSplit(splitValue, lines, SplitNum, DB_Split) {
@@ -112,31 +113,6 @@ function humblebundleDB(splitValue, lines) {
 	FB_object.DB_OthPicture = pictureTemp.indexOf("&amp;") == -1 ? pictureTemp : pictureTemp.replace(/&amp;/g, "&");
 	return JSON.stringify(FB_object, null, 5);
 }
-/*
-async function humblebundleMain() {
-	let splitValue = [];
-	let dbTemp = '';
-	let fileOutput = '';
-	let pageNum = 5;
-	fs.writeFile('HB_result.json', '{"humblebundleDB": [', 'utf8', function(error) {
-		console.log("파일 만들기-HumbleBundle: " + error);
-	});
-	for(let i = 0; i < pageNum; i++) {
-		splitValue = await humblebundleWeb(i);
-		for(let j = 1; j < splitValue.length; j++) {
-			HB_lineTotal = (j + (i * humblebundleRepeat) - 1);
-			dbTemp = humblebundleDB(splitValue, j, pageNum);
-			(HB_lineTotal != (pageNum * humblebundleRepeat) - 1) && (dbTemp != "0") ? fileOutput += (dbTemp + ","): fileOutput += "";
-		}
-	}
-	if(fileOutput.slice(-1) == ",") {
-		fileOutput = fileOutput.slice(0, -1);
-	}
-	fs.appendFile('HB_result.json', fileOutput + ']}', 'utf8', function(error) {
-		console.log("파일 쓰기-HumbleBundle: " + error);
-	});
-	console.log("HumbleBundle 크롤링 끝");
-}*/
 
 async function steamWeb(pageCount) {
 	let splitValue = ["abcdefgh"];
@@ -211,8 +187,9 @@ async function scrapingMain() {
 	let S_dbTemp = '';
 	let S_pageNum = parseInt(1000 / steamRepeat);
 	fs.writeFile('DBresult.json', '{"ScrapingDB": [', 'utf8', function(error) {
-		console.log("파일 만들기: " + error);
+		console.log("데이터베이스 파일 만들기: " + error);
 	});
+	console.log('크롤링 시작...');
 	for(let i = 0; i < S_pageNum; i++) {
 		S_splitValue = await steamWeb(i);
 		for(let j = 1; j < steamRepeat + 1; j++) {
@@ -221,7 +198,6 @@ async function scrapingMain() {
 			(S_lineTotal != (S_pageNum * steamRepeat) - 1) && (S_dbTemp != "0") ? fileOutput += (S_dbTemp + ","): fileOutput += "";
 		}
 	}
-
 	let HB_splitValue = [];
 	let HB_dbTemp = '';
 	let HB_pageNum = 5;
@@ -233,14 +209,16 @@ async function scrapingMain() {
 			(HB_lineTotal != (HB_pageNum * humblebundleRepeat) - 1) && (HB_dbTemp != "0") ? fileOutput += (HB_dbTemp + ","): fileOutput += "";
 		}
 	}
+
+	console.log('크롤링 종료');
 	if(fileOutput.slice(-1) == ",") {
 		fileOutput = fileOutput.slice(0, -1);
 	}
 
 	fs.appendFile('DBresult.json', fileOutput + ']}', 'utf8', function(error) {
-		console.log("파일 쓰기-Steam: " + error);
+		console.log("데이터베이스 파일 쓰기: " + error);
 	});
-	console.log("STEAM 크롤링 끝");
+	console.log("크롤링 및 데이터베이스 생성 끝");
 }
 
 const jsonToFirestore = async(jsonName) => {
@@ -255,10 +233,10 @@ const jsonToFirestore = async(jsonName) => {
 	}
 };
 
-async function WebScraper() {
+async function WebScraper() { //24시간 반복 기능 삭제
 	await scrapingMain();
 	await jsonToFirestore("DBresult.json");
-	console.log("완료");
+	console.log("크롤링 및 파이어베이스 업로드 종료");
 }
 
 WebScraper();
